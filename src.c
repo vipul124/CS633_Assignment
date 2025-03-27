@@ -50,9 +50,6 @@ int main(int argc, char *argv[])
         }
         fclose(file);
         printf("[DEBUG] Read the input file successfully\n");
-
-        // DISTRIBUTING
-        
     }
     
     MPI_Finalize();
