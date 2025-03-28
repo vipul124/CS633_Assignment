@@ -25,6 +25,14 @@ int main(int argc, char *argv[])
     int nc = atoi(argv[8]);     // number of time steps
     char *outputFile = argv[9]; // output file
 
+    // subdomain sizes
+    int snx = nx / px;
+    int sny = ny / py;
+    int snz = nz / pz;
+
+    int N = nx * ny * nz;
+    int localN = snx * sny * snz;
+
     // Check if the number of processes is correct
     if (size != px * py * pz) {
         if (rank == 0) {
@@ -34,22 +42,63 @@ int main(int argc, char *argv[])
     }
 
     // Reading the input file globally in the rank 0 process and then distributing it to all processes
+    double *arr[nc];
     if (rank == 0) {
-        int N = nx * ny * nz;
-        double arr[3][N];
-
-        // READING 
+        for (int t = 0; t < nc; t++){
+            arr[t] = malloc(N * sizeof(double));
+        }
+        
+        // READING STRATEGY - we are storing the input directly in distributable format
         FILE *file = fopen(inputFile, "r");
         if (file == NULL) {
             printf("[ERROR] Could not open file %s\n", inputFile);
             return 0;
         }
 
+        int xi, yi, zi, sxi, syi, szi, si, pxi, pyi, pzi, pi, offset, i_mod;
         for (int i = 0; i < N; i++) {
-            fscanf(file, "%lf %lf %lf", &arr[0][i], &arr[1][i], &arr[2][i]);
+            // Get the coordinates in current domain
+            xi = (i % (nx * ny)) % nx;
+            yi = (i % (nx * ny)) / nx;
+            zi = (i / (nx * ny));
+
+            // Convert the coordinates to subdomain and Get the position using the subdomain coordinates
+            sxi = xi % snx;
+            syi = yi % sny;
+            szi = zi % snz;
+            si = sxi + snx * syi + snx * sny * szi;
+
+            // Get the process coordinates and Get the process id using the process coordinates
+            pxi = xi / snx;
+            pyi = yi / sny;
+            pzi = zi / snz;
+            pi = pxi + px * pyi + px * py * pzi;
+
+            // Calculate the offset and then the modified i
+            offset = pi * snx * sny * snz;
+            i_mod = si + offset;
+
+            for (int t = 0; t < nc; t++){
+                fscanf(file, "%lf", &arr[t][i_mod]);
+            }
         }
         fclose(file);
         printf("[DEBUG] Read the input file successfully\n");
+    }
+
+    // DISTRIBUTING STRATEGY - As we have already read the data in specific format we will directly distribute the data using MPI_Scatter
+    double *localArr[nc];
+    for (int t = 0; t < nc; t++){
+        localArr[t] = malloc(localN * sizeof(double));        
+    }
+    for (int t = 0; t < nc; t++){
+        MPI_Scatter(arr[t], localN, MPI_DOUBLE, localArr[t], localN, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    }
+    printf("[DEBUG] Distributed input data to process %d\n", rank);
+    if (rank == 0){
+        for (int t = 0; t < nc; t++){
+            free(arr[t]);
+        }
     }
     
     MPI_Finalize();
