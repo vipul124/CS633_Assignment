@@ -135,8 +135,6 @@ int main(int argc, char *argv[])
     double time_1, time_2, time_3, time_4;
     time_1 = MPI_Wtime();
 
-    // READING AND DISTRIBUTION STRATEGY 1 - too naive :(
-    /*
     // Reading the input file globally in the rank 0 process and then distributing it to all processes
     double *arr[nc];
     if (rank == 0) {
@@ -196,40 +194,6 @@ int main(int argc, char *argv[])
             free(arr[t]);
         }
     }
-    */
-
-    // READING AND DISTRIBUTION STRATEGY 2 - parallel I/O
-    double *localArr[nc];
-    for (int t = 0; t < nc; t++){
-        localArr[t] = malloc(localN * sizeof(double));        
-    }
-
-    // define starting position of each process
-    int startPos = (ip * snx * nc) + (jp * sny * nx * nc) + (kp * snz * nx * ny * nc);
-
-    // define number of reads for each process and count of each read
-    int numReads = sny * snz;
-    int readCount = nc * snx;
-
-    // start reading the file
-    MPI_File fh;
-    int offset = 0;
-    double *readArr = malloc(readCount * numReads * sizeof(double));
-    MPI_File_open(MPI_COMM_WORLD, inputFile, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-    for (int k = 0; k < numReads; k++){
-        offset = (k % snz) * nx * nc + (k / snz) * nx * ny * nc;
-        MPI_File_read_at(fh, startPos + offset, readArr + k * readCount, readCount, MPI_DOUBLE, MPI_STATUS_IGNORE);
-    }
-    MPI_File_close(&fh);
-
-    // convert the data in required format
-    for (int i = 0; i < localN; i++){
-        for (int t = 0; t < nc; t++){
-            localArr[t][i] = readArr[i * nc + t];
-        }
-    }
-    free(readArr);
-    printf("[DEBUG] Read the input file successfully for process %d\n", rank);
 
     // Reading and Data Distribution ends here
     time_2 = MPI_Wtime();
