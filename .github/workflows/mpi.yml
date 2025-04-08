@@ -17,19 +17,19 @@ jobs:
       - name: Run MPI program and Get Results
         run: |
           echo "Running 64 * 64 * 64 * 3 on 8 processes"
-          mpirun -np 8 ./src inputFiles/data_64_64_64_3.txt 2 2 2 64 64 64 3 output_64_64_64_3_8.txt
+          mpirun -np 8 ./src inputFiles/data_64_64_64_3_bin.txt 2 2 2 64 64 64 3 output_64_64_64_3_8.txt
           cat output_64_64_64_3_8.txt
 
           echo "\n\nRunning 64 * 64 * 64 * 3 on 64 processes"
-          mpirun -np 64 ./src inputFiles/data_64_64_64_3.txt 4 4 4 64 64 64 3 output_64_64_64_3_64.txt
+          mpirun -np 64 ./src inputFiles/data_64_64_64_3_bin.txt 4 4 4 64 64 64 3 output_64_64_64_3_64.txt
           cat output_64_64_64_3_64.txt
 
           echo "\n\n\nRunning 64 * 64 * 96 * 7 on 8 processes"
-          mpirun -np 8 ./src inputFiles/data_64_64_96_7.txt 2 2 2 64 64 96 7 output_64_64_96_7_8.txt
+          mpirun -np 8 ./src inputFiles/data_64_64_96_7_bin.txt 2 2 2 64 64 96 7 output_64_64_96_7_8.txt
           cat output_64_64_96_7_8.txt
 
           echo "\n\nRunning 64 * 64 * 96 * 7 on 64 processes"
-          mpirun -np 64 ./src inputFiles/data_64_64_96_7.txt 4 4 4 64 64 96 7 output_64_64_96_7_64.txt
+          mpirun -np 64 ./src inputFiles/data_64_64_96_7_bin.txt 4 4 4 64 64 96 7 output_64_64_96_7_64.txt
           cat output_64_64_96_7_64.txt
 
       - name: Upload Output Files
