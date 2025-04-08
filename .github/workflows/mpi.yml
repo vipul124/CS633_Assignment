@@ -38,7 +38,7 @@ jobs:
           cat output_64_64_96_7_64.txt
 
       - name: Upload Output Files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mpi-results
           path: |
