@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
     int kp = (rank / (px * py));
 
     // Initializing variables to keep a track of time taken in each part of execution
-    double time_1, time_2, time_3, time_4, avg_finalReadTime = 0, avg_finalMainTime = 0, avg_finalTotalTime = 0;
+    double time_1, time_2, time_3, avg_finalReadTime = 0, avg_finalMainTime = 0, avg_finalTotalTime = 0;
     int localMinima[nc], localMaxima[nc];
     double globalMinima[nc], globalMaxima[nc];
     int totalLocalMinima[nc], totalLocalMaxima[nc];
@@ -239,11 +239,11 @@ int main(int argc, char *argv[])
     printf("[DEBUG] Read the input file successfully for process %d\n", rank);
 
     // Reading and Data Distribution ends here
-    time_2 = MPI_Wtime();
     
     // Main Code starts here
     // Before starting the computation it is wise to exchange the ghost layers beforehand
     double *leftGhostLayer[nc], *rightGhostLayer[nc], *topGhostLayer[nc], *bottomGhostLayer[nc], *frontGhostLayer[nc], *backGhostLayer[nc];
+    time_2 = MPI_Wtime();
 
     for (int t = 0; t < nc; t++){
         // sending the ghost layers
@@ -385,13 +385,10 @@ int main(int argc, char *argv[])
         MPI_Reduce(&globalMaxima[t], &globalGlobalMaxima[t], 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     }
 
-    // Total time ends here
-    time_4 = MPI_Wtime();
-
     // Calculating the time taken for each part of the code
     double readTime = time_2 - time_1;
     double mainTime = time_3 - time_2;
-    double totalTime = time_4 - time_1;
+    double totalTime = time_3 - time_1;
     double finalReadTime, finalMainTime, finalTotalTime;
     MPI_Reduce(&readTime, &finalReadTime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     MPI_Reduce(&mainTime, &finalMainTime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
