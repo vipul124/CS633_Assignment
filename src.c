@@ -133,7 +133,13 @@ int main(int argc, char *argv[])
     int kp = (rank / (px * py));
 
     // Initializing variables to keep a track of time taken in each part of execution
-    double time_1, time_2, time_3, time_4;
+    double time_1, time_2, time_3, time_4, avg_finalReadTime = 0, avg_finalMainTime = 0, avg_finalTotalTime = 0;
+    int localMinima[nc], localMaxima[nc];
+    double globalMinima[nc], globalMaxima[nc];
+    int totalLocalMinima[nc], totalLocalMaxima[nc];
+    double globalGlobalMinima[nc], globalGlobalMaxima[nc];
+    // Looping over the number of iterations to get the average time taken
+    for(int i = 0;i<2;i++){
     time_1 = MPI_Wtime();
 
     // READING AND DISTRIBUTION STRATEGY 1 - too naive :(
@@ -295,8 +301,6 @@ int main(int argc, char *argv[])
 
     // Local and Global Minima Calculations 
     int sxi, syi, szi, isLocalMinima, isLocalMaxima;
-    int localMinima[nc], localMaxima[nc];
-    double globalMinima[nc], globalMaxima[nc];
     for (int t = 0; t < nc; t++){
         localMinima[t] = 0;
         localMaxima[t] = 0;
@@ -374,8 +378,6 @@ int main(int argc, char *argv[])
     time_3 = MPI_Wtime();
 
     // Gathering the local and global extermas to a single process
-    int totalLocalMinima[nc], totalLocalMaxima[nc];
-    double globalGlobalMinima[nc], globalGlobalMaxima[nc];
     for (int t = 0; t < nc; t++){
         MPI_Reduce(&localMinima[t], &totalLocalMinima[t], 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
         MPI_Reduce(&localMaxima[t], &totalLocalMaxima[t], 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -394,6 +396,10 @@ int main(int argc, char *argv[])
     MPI_Reduce(&readTime, &finalReadTime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     MPI_Reduce(&mainTime, &finalMainTime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     MPI_Reduce(&totalTime, &finalTotalTime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    avg_finalReadTime += finalReadTime*0.5;
+    avg_finalMainTime += finalMainTime*0.5;
+    avg_finalTotalTime += finalTotalTime*0.5;
+    }
 
     // Writing the output file
     if (rank == 0) {
@@ -420,7 +426,7 @@ int main(int argc, char *argv[])
         fprintf(file, "\n");
 
         // Printing time taken
-        fprintf(file, "%lf, %lf, %lf\n", finalReadTime, finalMainTime, finalTotalTime);
+        fprintf(file, "%lf, %lf, %lf\n", avg_finalReadTime, avg_finalMainTime, avg_finalTotalTime);
 
         fclose(file);
         printf("[DEBUG] Wrote the output file successfully\n");
