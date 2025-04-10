@@ -15,7 +15,7 @@ jobs:
         with:
           output_dir: .
           main_latex_file: Group03.tex
-          ctan_packages: graphicx comment
+          ctan_packages: graphicx amsmath listings xcolor tabularx
 
       - name: Upload PDF to the workflow tab
         id: upload-workflow-tab
