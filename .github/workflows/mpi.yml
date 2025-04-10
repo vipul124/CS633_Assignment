@@ -19,7 +19,7 @@ jobs:
 
       - name: Upload PDF to the workflow tab
         id: upload-workflow-tab
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: root
           path: ./Group03.pdf
