@@ -6,19 +6,23 @@ jobs:
   build_latex:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Set up Git repository
         uses: actions/checkout@v2
 
-      - name: Compile LaTeX document
-        uses: xu-cheng/latex-action@v2
+      - name: latex2pdf
+        id: compile-latex-document
+        uses: thomas-chauvet/latex2pdf-action@1.1.0
         with:
-          root_file: Group03.tex
+          output_dir: .
+          main_latex_file: Group03.tex
+          ctan_packages: graphicx amsmath listings xcolor tabularx
 
-      - name: Upload PDF artifact
-        uses: actions/upload-artifact@v2
+      - name: Upload PDF to the workflow tab
+        id: upload-workflow-tab
+        uses: actions/upload-artifact@v4
         with:
-          name: Group03-pdf
-          path: Group03.pdf
+          name: root
+          path: ./Group03.pdf
 
   mpi-test:
     runs-on: self-hosted
