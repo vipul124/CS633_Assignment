@@ -233,6 +233,7 @@ int main(int argc, char *argv[])
         */
 
         // READING AND DISTRIBUTION STRATEGY 2 - parallel I/O
+        /*
         double *localArr[nc];
         for (int t = 0; t < nc; t++)
         {
@@ -256,6 +257,52 @@ int main(int argc, char *argv[])
             offset = (k % sny) * nx * nc + (k / sny) * nx * ny * nc;
             MPI_File_read_at(fh, (startPos + offset) * sizeof(double), readArr + k * readCount, readCount, MPI_DOUBLE, MPI_STATUS_IGNORE);
         }
+        MPI_File_close(&fh);
+
+        // convert the data in required format
+        for (int i = 0; i < localN; i++)
+        {
+            for (int t = 0; t < nc; t++)
+            {
+                localArr[t][i] = readArr[i * nc + t];
+            }
+        }
+        free(readArr);
+        printf("[DEBUG] Read the input file successfully for process %d\n", rank);
+        */
+
+        // READING AND DISTRIBUTION STRATEGY 3 - parallel I/O w/ MPI_Type_vector
+        double *localArr[nc];
+        for (int t = 0; t < nc; t++)
+        {
+            localArr[t] = malloc(localN * sizeof(double));
+        }
+
+        // define starting position of each process
+        int startPos = (ip * snx * nc) + (jp * sny * nx * nc) + (kp * snz * nx * ny * nc);
+
+        // define number of reads for each process and count of each read
+        int numReads = sny * snz;
+        int readCount = nc * snx;
+
+        // define blocklengths and displacements for MPI_Type_vector
+        int *blocklengths  = malloc(numReads * sizeof(int));
+        int *displacements = malloc(numReads * sizeof(int));
+        for (int k = 0; k < numReads; k++)
+        {
+            blocklengths[k]  = readCount;
+            displacements[k] = ((k % sny) * nx * nc + (k / sny) * nx * ny * nc);
+        }
+        MPI_Datatype inputType;
+        MPI_Type_indexed(numReads, blocklengths, displacements, MPI_DOUBLE, &inputType);
+        MPI_Type_commit(&inputType);
+
+        // start reading the file
+        MPI_File fh;
+        double *readArr = malloc(readCount * numReads * sizeof(double));
+        MPI_File_open(MPI_COMM_WORLD, inputFile, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
+        MPI_File_set_view(fh, startPos * sizeof(double), MPI_DOUBLE, inputType, "native", MPI_INFO_NULL);
+        MPI_File_read_all(fh, readArr, readCount * numReads, MPI_DOUBLE, MPI_STATUS_IGNORE);
         MPI_File_close(&fh);
 
         // convert the data in required format
