@@ -220,11 +220,11 @@ int main(int argc, char *argv[])
     for (long long t = 0; t < nc; t++){
         MPI_Scatter(arr[t], localN, MPI_FLOAT, localArr[t], localN, MPI_FLOAT, 0, MPI_COMM_WORLD);
     }
-    if (rank == 0){
-        for (long long t = 0; t < nc; t++){
-            free(arr[t]);
-        }
-    }
+    // if (rank == 0){
+    //     for (long long t = 0; t < nc; t++){
+    //         free(arr[t]);
+    //     }
+    // }
     */
 
     // READING AND DISTRIBUTION STRATEGY 2 - parallel I/O
@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
             localArr[t][i] = readArr[i * nc + t];
         }
     }
-    free(readArr);
+    // free(readArr);
     */
 
     // READING AND DISTRIBUTION STRATEGY 3 - parallel I/O w/ MPI_Type_vector
@@ -307,9 +307,10 @@ int main(int argc, char *argv[])
             localArr[t][i] = readArr[i * nc + t];
         }
     }
-    free(readArr);
+    // free(readArr);
 
     // Reading and Data Distribution ends here
+    MPI_Barrier(MPI_COMM_WORLD);
     time_2 = MPI_Wtime();
 
     // Main Code starts here
