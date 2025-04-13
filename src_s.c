@@ -168,10 +168,11 @@ int main(int argc, char *argv[])
     time_1 = MPI_Wtime();
 
     // READING AND DISTRIBUTION STRATEGY 1 - too naive :(
-    /*
     // Reading the input file globally in the rank 0 process and then distributing it to all processes
-    float *arr = malloc(nc * N * sizeof(float));
+    float *arr;
     if (rank == 0) {
+        arr = malloc(nc * N * sizeof(float));
+
         // READING STRATEGY - we are storing the input directly in distributable format
         FILE *file = fopen(inputFile, "rb");
         if (file == NULL) {
@@ -212,49 +213,6 @@ int main(int argc, char *argv[])
     float *localArr = malloc(nc * localN * sizeof(float));
     MPI_Scatter(arr, localN * nc, MPI_FLOAT, localArr, localN * nc, MPI_FLOAT, 0, MPI_COMM_WORLD);
     // free(arr);
-    */
-
-    // READING AND DISTRIBUTION STRATEGY 2 - parallel I/O
-    /*
-    // define starting position of each process
-    long long startPos = (ip * snx * nc) + (jp * sny * nx * nc) + (kp * snz * nx * ny * nc);
-
-    // define number of reads for each process and count of each read
-    long long numReads = sny * snz;
-    long long readCount = nc * snx;
-
-    // start reading the file
-    MPI_File fh;
-    long long offset = 0;
-    float *localArr = malloc(readCount * numReads * sizeof(float));
-    MPI_File_open(MPI_COMM_WORLD, inputFile, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-    for (long long k = 0; k < numReads; k++)
-    {
-        offset = (k % sny) * nx * nc + (k / sny) * nx * ny * nc;
-        MPI_File_read_at(fh, (startPos + offset) * sizeof(float), localArr + k * readCount, readCount, MPI_FLOAT, MPI_STATUS_IGNORE);
-    }
-    MPI_File_close(&fh);
-    */
-
-    // READING AND DISTRIBUTION STRATEGY 3 - parallel I/O w/ MPI_Type_vector
-    // define dimension split of each process
-    int ndims = 4;
-    int dims[4]    = {nz, ny, nx, nc };
-    int subdims[4] = {snz, sny, snx, nc};
-    int starts[4]  = {(kp * snz), (jp * sny), (ip * snx), 0};
-
-    // Create MPI_Type_vector
-    MPI_Datatype inputType;
-    MPI_Type_create_subarray(ndims, dims, subdims, starts, MPI_ORDER_C, MPI_FLOAT, &inputType);
-    MPI_Type_commit(&inputType);
-
-    // start reading the file
-    MPI_File fh;
-    float *localArr = malloc(nc * localN * sizeof(float));
-    MPI_File_open(MPI_COMM_WORLD, inputFile, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-    MPI_File_set_view(fh, 0, MPI_FLOAT, inputType, "native", MPI_INFO_NULL);
-    MPI_File_read_all(fh, localArr, localN * nc, MPI_FLOAT, MPI_STATUS_IGNORE);
-    MPI_File_close(&fh);
 
     // Reading and Data Distribution ends here
     time_2 = MPI_Wtime();
