@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "mpi.h"
 
-void exchangeGhostLayers(double *ghostLayer, double *localArr, long long ip, long long jp, long long kp, long long px, long long py, long long pz, long long snx, long long sny, long long snz, long long direction, long long sendFlag)
+void exchangeGhostLayers(float *ghostLayer, float *localArr, long long ip, long long jp, long long kp, long long px, long long py, long long pz, long long snx, long long sny, long long snz, long long direction, long long sendFlag)
 {
     long long currRank = ip + px * jp + px * py * kp, neighbourRank;
     MPI_Datatype newType;
@@ -15,13 +15,13 @@ void exchangeGhostLayers(double *ghostLayer, double *localArr, long long ip, lon
         neighbourRank = (ip - 1) + px * jp + px * py * kp;
         if (sendFlag)
         {
-            MPI_Type_vector(sny * snz, 1, snx, MPI_DOUBLE, &newType);
+            MPI_Type_vector(sny * snz, 1, snx, MPI_FLOAT, &newType);
             MPI_Type_commit(&newType);
             MPI_Isend(localArr + 0, 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
         }
         else
         {
-            MPI_Irecv(ghostLayer, sny * snz, MPI_DOUBLE, neighbourRank, currRank, MPI_COMM_WORLD, &request);
+            MPI_Irecv(ghostLayer, sny * snz, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
         }
     }
 
@@ -31,13 +31,13 @@ void exchangeGhostLayers(double *ghostLayer, double *localArr, long long ip, lon
         neighbourRank = (ip + 1) + px * jp + px * py * kp;
         if (sendFlag)
         {
-            MPI_Type_vector(sny * snz, 1, snx, MPI_DOUBLE, &newType);
+            MPI_Type_vector(sny * snz, 1, snx, MPI_FLOAT, &newType);
             MPI_Type_commit(&newType);
             MPI_Isend(localArr + (snx - 1), 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
         }
         else
         {
-            MPI_Irecv(ghostLayer, sny * snz, MPI_DOUBLE, neighbourRank, currRank, MPI_COMM_WORLD, &request);
+            MPI_Irecv(ghostLayer, sny * snz, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
         }
     }
 
@@ -47,13 +47,13 @@ void exchangeGhostLayers(double *ghostLayer, double *localArr, long long ip, lon
         neighbourRank = ip + px * (jp - 1) + px * py * kp;
         if (sendFlag)
         {
-            MPI_Type_vector(snz, snx, snx * sny, MPI_DOUBLE, &newType);
+            MPI_Type_vector(snz, snx, snx * sny, MPI_FLOAT, &newType);
             MPI_Type_commit(&newType);
             MPI_Isend(localArr + 0, 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
         }
         else
         {
-            MPI_Irecv(ghostLayer, snx * snz, MPI_DOUBLE, neighbourRank, currRank, MPI_COMM_WORLD, &request);
+            MPI_Irecv(ghostLayer, snx * snz, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
         }
     }
 
@@ -63,13 +63,13 @@ void exchangeGhostLayers(double *ghostLayer, double *localArr, long long ip, lon
         neighbourRank = ip + px * (jp + 1) + px * py * kp;
         if (sendFlag)
         {
-            MPI_Type_vector(snz, snx, snx * sny, MPI_DOUBLE, &newType);
+            MPI_Type_vector(snz, snx, snx * sny, MPI_FLOAT, &newType);
             MPI_Type_commit(&newType);
             MPI_Isend(localArr + (snx * sny - snx), 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
         }
         else
         {
-            MPI_Irecv(ghostLayer, snx * snz, MPI_DOUBLE, neighbourRank, currRank, MPI_COMM_WORLD, &request);
+            MPI_Irecv(ghostLayer, snx * snz, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
         }
     }
 
@@ -79,13 +79,13 @@ void exchangeGhostLayers(double *ghostLayer, double *localArr, long long ip, lon
         neighbourRank = ip + px * jp + px * py * (kp - 1);
         if (sendFlag)
         {
-            MPI_Type_vector(1, snx * sny, snx * sny * snz, MPI_DOUBLE, &newType);
+            MPI_Type_vector(1, snx * sny, snx * sny * snz, MPI_FLOAT, &newType);
             MPI_Type_commit(&newType);
             MPI_Isend(localArr + 0, 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
         }
         else
         {
-            MPI_Irecv(ghostLayer, snx * sny, MPI_DOUBLE, neighbourRank, currRank, MPI_COMM_WORLD, &request);
+            MPI_Irecv(ghostLayer, snx * sny, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
         }
     }
 
@@ -95,13 +95,13 @@ void exchangeGhostLayers(double *ghostLayer, double *localArr, long long ip, lon
         neighbourRank = ip + px * jp + px * py * (kp + 1);
         if (sendFlag)
         {
-            MPI_Type_vector(1, snx * sny, snx * sny * snz, MPI_DOUBLE, &newType);
+            MPI_Type_vector(1, snx * sny, snx * sny * snz, MPI_FLOAT, &newType);
             MPI_Type_commit(&newType);
             MPI_Isend(localArr + (snx * sny * snz - snx * sny), 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
         }
         else
         {
-            MPI_Irecv(ghostLayer, snx * sny, MPI_DOUBLE, neighbourRank, currRank, MPI_COMM_WORLD, &request);
+            MPI_Irecv(ghostLayer, snx * sny, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
         }
     }
 
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
     // Initializing variables to keep a track of time taken in each part of execution
     double time_1, time_2, time_3;
     long long localMinima[nc], localMaxima[nc], totalLocalMinima[nc], totalLocalMaxima[nc];
-    double globalMinima[nc], globalMaxima[nc], globalGlobalMinima[nc], globalGlobalMaxima[nc];
+    float globalMinima[nc], globalMaxima[nc], globalGlobalMinima[nc], globalGlobalMaxima[nc];
 
     // Read Time starts here
     time_1 = MPI_Wtime();
@@ -169,10 +169,10 @@ int main(int argc, char *argv[])
     // READING AND DISTRIBUTION STRATEGY 1 - too naive :(
     /*
     // Reading the input file globally in the rank 0 process and then distributing it to all processes
-    double *arr[nc];
+    float *arr[nc];
     if (rank == 0) {
         for (long long t = 0; t < nc; t++){
-            arr[t] = malloc(N * sizeof(double));
+            arr[t] = malloc(N * sizeof(float));
         }
 
         // READING STRATEGY - we are storing the input directly in distributable format
@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
             i_mod = si + offset;
 
             for (long long t = 0; t < nc; t++){
-                fread(&arr[t][i_mod], sizeof(double), 1, file);
+                fread(&arr[t][i_mod], sizeof(float), 1, file);
             }
         }
         fclose(file);
@@ -214,12 +214,12 @@ int main(int argc, char *argv[])
     }
 
     // DISTRIBUTING STRATEGY - As we have already read the data in specific format we will directly distribute the data using MPI_Scatter
-    double *localArr[nc];
+    float *localArr[nc];
     for (long long t = 0; t < nc; t++){
-        localArr[t] = malloc(localN * sizeof(double));
+        localArr[t] = malloc(localN * sizeof(float));
     }
     for (long long t = 0; t < nc; t++){
-        MPI_Scatter(arr[t], localN, MPI_DOUBLE, localArr[t], localN, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        MPI_Scatter(arr[t], localN, MPI_FLOAT, localArr[t], localN, MPI_FLOAT, 0, MPI_COMM_WORLD);
     }
     printf("[DEBUG] Distributed input data to process %d\n", rank);
     if (rank == 0){
@@ -231,10 +231,10 @@ int main(int argc, char *argv[])
 
     // READING AND DISTRIBUTION STRATEGY 2 - parallel I/O
     /*
-    double *localArr[nc];
+    float *localArr[nc];
     for (long long t = 0; t < nc; t++)
     {
-        localArr[t] = malloc(localN * sizeof(double));
+        localArr[t] = malloc(localN * sizeof(float));
     }
 
     // define starting position of each process
@@ -247,12 +247,12 @@ int main(int argc, char *argv[])
     // start reading the file
     MPI_File fh;
     long long offset = 0;
-    double *readArr = malloc(readCount * numReads * sizeof(double));
+    float *readArr = malloc(readCount * numReads * sizeof(float));
     MPI_File_open(MPI_COMM_WORLD, inputFile, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
     for (long long k = 0; k < numReads; k++)
     {
         offset = (k % sny) * nx * nc + (k / sny) * nx * ny * nc;
-        MPI_File_read_at(fh, (startPos + offset) * sizeof(double), readArr + k * readCount, readCount, MPI_DOUBLE, MPI_STATUS_IGNORE);
+        MPI_File_read_at(fh, (startPos + offset) * sizeof(float), readArr + k * readCount, readCount, MPI_FLOAT, MPI_STATUS_IGNORE);
     }
     MPI_File_close(&fh);
 
@@ -269,10 +269,10 @@ int main(int argc, char *argv[])
     */
 
     // READING AND DISTRIBUTION STRATEGY 3 - parallel I/O w/ MPI_Type_vector
-    double *localArr[nc];
+    float *localArr[nc];
     for (long long t = 0; t < nc; t++)
     {
-        localArr[t] = malloc(localN * sizeof(double));
+        localArr[t] = malloc(localN * sizeof(float));
     }
 
     // define starting position of each process
@@ -291,16 +291,23 @@ int main(int argc, char *argv[])
         displacements[k] = ((k % sny) * nx * nc + (k / sny) * nx * ny * nc);
     }
     MPI_Datatype inputType;
-    MPI_Type_indexed(numReads, blocklengths, displacements, MPI_DOUBLE, &inputType);
+    MPI_Type_indexed(numReads, blocklengths, displacements, MPI_FLOAT, &inputType);
     MPI_Type_commit(&inputType);
 
     // start reading the file
     MPI_File fh;
-    double *readArr = malloc(readCount * numReads * sizeof(double));
+    float *readArr = malloc(readCount * numReads * sizeof(float));
     MPI_File_open(MPI_COMM_WORLD, inputFile, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-    MPI_File_set_view(fh, startPos * sizeof(double), MPI_DOUBLE, inputType, "native", MPI_INFO_NULL);
-    MPI_File_read_all(fh, readArr, readCount * numReads, MPI_DOUBLE, MPI_STATUS_IGNORE);
+    MPI_File_set_view(fh, startPos * sizeof(float), MPI_FLOAT, inputType, "native", MPI_INFO_NULL);
+    MPI_File_read_all(fh, readArr, readCount * numReads, MPI_FLOAT, MPI_STATUS_IGNORE);
     MPI_File_close(&fh);
+
+    if (rank == 0)
+    {
+        for (int i = 0; i<50; i++){
+            printf("%f ", readArr[3 * i]);
+        }
+    }
 
     // convert the data in required format
     for (long long i = 0; i < localN; i++)
@@ -318,71 +325,71 @@ int main(int argc, char *argv[])
 
     // Main Code starts here
     // Before starting the computation it is wise to exchange the ghost layers beforehand
-    double *leftGhostLayer[nc], *rightGhostLayer[nc], *topGhostLayer[nc], *bottomGhostLayer[nc], *frontGhostLayer[nc], *backGhostLayer[nc];
+    float *leftGhostLayer[nc], *rightGhostLayer[nc], *topGhostLayer[nc], *bottomGhostLayer[nc], *frontGhostLayer[nc], *backGhostLayer[nc];
 
     for (long long t = 0; t < nc; t++)
     {
         // sending the ghost layers
         if (ip != 0)
         {
-            leftGhostLayer[t] = malloc(sny * snz * sizeof(double));
+            leftGhostLayer[t] = malloc(sny * snz * sizeof(float));
             exchangeGhostLayers(leftGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 1, 1);
         }
         if (ip != px - 1)
         {
-            rightGhostLayer[t] = malloc(sny * snz * sizeof(double));
+            rightGhostLayer[t] = malloc(sny * snz * sizeof(float));
             exchangeGhostLayers(rightGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 2, 1);
         }
         if (jp != 0)
         {
-            topGhostLayer[t] = malloc(snx * snz * sizeof(double));
+            topGhostLayer[t] = malloc(snx * snz * sizeof(float));
             exchangeGhostLayers(topGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 3, 1);
         }
         if (jp != py - 1)
         {
-            bottomGhostLayer[t] = malloc(snx * snz * sizeof(double));
+            bottomGhostLayer[t] = malloc(snx * snz * sizeof(float));
             exchangeGhostLayers(bottomGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 4, 1);
         }
         if (kp != 0)
         {
-            frontGhostLayer[t] = malloc(snx * sny * sizeof(double));
+            frontGhostLayer[t] = malloc(snx * sny * sizeof(float));
             exchangeGhostLayers(frontGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 5, 1);
         }
         if (kp != pz - 1)
         {
-            backGhostLayer[t] = malloc(snx * sny * sizeof(double));
+            backGhostLayer[t] = malloc(snx * sny * sizeof(float));
             exchangeGhostLayers(backGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 6, 1);
         }
 
         // receiving the ghost layers
         if (ip != 0)
         {
-            leftGhostLayer[t] = malloc(sny * snz * sizeof(double));
+            leftGhostLayer[t] = malloc(sny * snz * sizeof(float));
             exchangeGhostLayers(leftGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 1, 0);
         }
         if (ip != px - 1)
         {
-            rightGhostLayer[t] = malloc(sny * snz * sizeof(double));
+            rightGhostLayer[t] = malloc(sny * snz * sizeof(float));
             exchangeGhostLayers(rightGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 2, 0);
         }
         if (jp != 0)
         {
-            topGhostLayer[t] = malloc(snx * snz * sizeof(double));
+            topGhostLayer[t] = malloc(snx * snz * sizeof(float));
             exchangeGhostLayers(topGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 3, 0);
         }
         if (jp != py - 1)
         {
-            bottomGhostLayer[t] = malloc(snx * snz * sizeof(double));
+            bottomGhostLayer[t] = malloc(snx * snz * sizeof(float));
             exchangeGhostLayers(bottomGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 4, 0);
         }
         if (kp != 0)
         {
-            frontGhostLayer[t] = malloc(snx * sny * sizeof(double));
+            frontGhostLayer[t] = malloc(snx * sny * sizeof(float));
             exchangeGhostLayers(frontGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 5, 0);
         }
         if (kp != pz - 1)
         {
-            backGhostLayer[t] = malloc(snx * sny * sizeof(double));
+            backGhostLayer[t] = malloc(snx * sny * sizeof(float));
             exchangeGhostLayers(backGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 6, 0);
         }
     }
@@ -489,8 +496,8 @@ int main(int argc, char *argv[])
     {
         MPI_Reduce(&localMinima[t], &totalLocalMinima[t], 1, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
         MPI_Reduce(&localMaxima[t], &totalLocalMaxima[t], 1, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&globalMinima[t], &globalGlobalMinima[t], 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&globalMaxima[t], &globalGlobalMaxima[t], 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&globalMinima[t], &globalGlobalMinima[t], 1, MPI_FLOAT, MPI_MIN, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&globalMaxima[t], &globalGlobalMaxima[t], 1, MPI_FLOAT, MPI_MAX, 0, MPI_COMM_WORLD);
     }
 
     // Total time & Main Code ends here
@@ -529,7 +536,7 @@ int main(int argc, char *argv[])
         {
             if (t != 0)
                 fprintf(file, ", ");
-            fprintf(file, "(%lf, %lf)", globalGlobalMinima[t], globalGlobalMaxima[t]);
+            fprintf(file, "(%.4f, %.4f)", globalGlobalMinima[t], globalGlobalMaxima[t]);
         }
         fprintf(file, "\n");
 
