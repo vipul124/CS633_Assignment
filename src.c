@@ -210,7 +210,6 @@ int main(int argc, char *argv[])
             }
         }
         fclose(file);
-        printf("[DEBUG] Read the input file successfully\n");
     }
 
     // DISTRIBUTING STRATEGY - As we have already read the data in specific format we will directly distribute the data using MPI_Scatter
@@ -221,7 +220,6 @@ int main(int argc, char *argv[])
     for (long long t = 0; t < nc; t++){
         MPI_Scatter(arr[t], localN, MPI_FLOAT, localArr[t], localN, MPI_FLOAT, 0, MPI_COMM_WORLD);
     }
-    printf("[DEBUG] Distributed input data to process %d\n", rank);
     if (rank == 0){
         for (long long t = 0; t < nc; t++){
             free(arr[t]);
@@ -265,7 +263,6 @@ int main(int argc, char *argv[])
         }
     }
     free(readArr);
-    printf("[DEBUG] Read the input file successfully for process %d\n", rank);
     */
 
     // READING AND DISTRIBUTION STRATEGY 3 - parallel I/O w/ MPI_Type_vector
@@ -302,13 +299,6 @@ int main(int argc, char *argv[])
     MPI_File_read_all(fh, readArr, readCount * numReads, MPI_FLOAT, MPI_STATUS_IGNORE);
     MPI_File_close(&fh);
 
-    if (rank == 0)
-    {
-        for (int i = 0; i<50; i++){
-            printf("%f ", readArr[3 * i]);
-        }
-    }
-
     // convert the data in required format
     for (long long i = 0; i < localN; i++)
     {
@@ -318,7 +308,6 @@ int main(int argc, char *argv[])
         }
     }
     free(readArr);
-    printf("[DEBUG] Read the input file successfully for process %d\n", rank);
 
     // Reading and Data Distribution ends here
     time_2 = MPI_Wtime();
@@ -544,7 +533,6 @@ int main(int argc, char *argv[])
         fprintf(file, "%lf, %lf, %lf\n", finalReadTime, finalMainTime, finalTotalTime);
 
         fclose(file);
-        printf("[DEBUG] Wrote the output file successfully\n");
     }
 
     MPI_Finalize();
