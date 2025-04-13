@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "mpi.h"
 
-void exchangeGhostLayers(float *ghostLayer, float *localArr, long long ip, long long jp, long long kp, long long px, long long py, long long pz, long long snx, long long sny, long long snz, long long direction, long long sendFlag)
+void exchangeGhostLayers(float *ghostLayer, float *localArr, long long ip, long long jp, long long kp, long long px, long long py, long long pz, long long snx, long long sny, long long snz, long long nc, long long direction, long long sendFlag)
 {
     long long currRank = ip + px * jp + px * py * kp, neighbourRank;
     MPI_Datatype newType;
@@ -15,13 +15,13 @@ void exchangeGhostLayers(float *ghostLayer, float *localArr, long long ip, long 
         neighbourRank = (ip - 1) + px * jp + px * py * kp;
         if (sendFlag)
         {
-            MPI_Type_vector(sny * snz, 1, snx, MPI_FLOAT, &newType);
+            MPI_Type_vector(sny * snz, nc, snx * nc, MPI_FLOAT, &newType);
             MPI_Type_commit(&newType);
             MPI_Isend(localArr + 0, 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
         }
         else
         {
-            MPI_Irecv(ghostLayer, sny * snz, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
+            MPI_Irecv(ghostLayer, sny * snz * nc, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
         }
     }
 
@@ -31,13 +31,13 @@ void exchangeGhostLayers(float *ghostLayer, float *localArr, long long ip, long 
         neighbourRank = (ip + 1) + px * jp + px * py * kp;
         if (sendFlag)
         {
-            MPI_Type_vector(sny * snz, 1, snx, MPI_FLOAT, &newType);
+            MPI_Type_vector(sny * snz, nc, snx * nc, MPI_FLOAT, &newType);
             MPI_Type_commit(&newType);
-            MPI_Isend(localArr + (snx - 1), 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
+            MPI_Isend(localArr + (snx - 1) * nc, 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
         }
         else
         {
-            MPI_Irecv(ghostLayer, sny * snz, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
+            MPI_Irecv(ghostLayer, sny * snz * nc, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
         }
     }
 
@@ -47,13 +47,13 @@ void exchangeGhostLayers(float *ghostLayer, float *localArr, long long ip, long 
         neighbourRank = ip + px * (jp - 1) + px * py * kp;
         if (sendFlag)
         {
-            MPI_Type_vector(snz, snx, snx * sny, MPI_FLOAT, &newType);
+            MPI_Type_vector(snz, snx * nc, snx * sny * nc, MPI_FLOAT, &newType);
             MPI_Type_commit(&newType);
             MPI_Isend(localArr + 0, 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
         }
         else
         {
-            MPI_Irecv(ghostLayer, snx * snz, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
+            MPI_Irecv(ghostLayer, snx * snz * nc, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
         }
     }
 
@@ -63,13 +63,13 @@ void exchangeGhostLayers(float *ghostLayer, float *localArr, long long ip, long 
         neighbourRank = ip + px * (jp + 1) + px * py * kp;
         if (sendFlag)
         {
-            MPI_Type_vector(snz, snx, snx * sny, MPI_FLOAT, &newType);
+            MPI_Type_vector(snz, snx * nc, snx * sny * nc, MPI_FLOAT, &newType);
             MPI_Type_commit(&newType);
-            MPI_Isend(localArr + (snx * sny - snx), 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
+            MPI_Isend(localArr + (sny - 1) * snx * nc, 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
         }
         else
         {
-            MPI_Irecv(ghostLayer, snx * snz, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
+            MPI_Irecv(ghostLayer, snx * snz * nc, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
         }
     }
 
@@ -79,13 +79,13 @@ void exchangeGhostLayers(float *ghostLayer, float *localArr, long long ip, long 
         neighbourRank = ip + px * jp + px * py * (kp - 1);
         if (sendFlag)
         {
-            MPI_Type_vector(1, snx * sny, snx * sny * snz, MPI_FLOAT, &newType);
+            MPI_Type_vector(1, snx * sny * nc, snx * sny * snz * nc, MPI_FLOAT, &newType);
             MPI_Type_commit(&newType);
             MPI_Isend(localArr + 0, 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
         }
         else
         {
-            MPI_Irecv(ghostLayer, snx * sny, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
+            MPI_Irecv(ghostLayer, snx * sny * nc, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
         }
     }
 
@@ -95,13 +95,13 @@ void exchangeGhostLayers(float *ghostLayer, float *localArr, long long ip, long 
         neighbourRank = ip + px * jp + px * py * (kp + 1);
         if (sendFlag)
         {
-            MPI_Type_vector(1, snx * sny, snx * sny * snz, MPI_FLOAT, &newType);
+            MPI_Type_vector(1, snx * sny * nc, snx * sny * snz * nc, MPI_FLOAT, &newType);
             MPI_Type_commit(&newType);
-            MPI_Isend(localArr + (snx * sny * snz - snx * sny), 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
+            MPI_Isend(localArr + (snz - 1) * snx * sny * nc, 1, newType, neighbourRank, neighbourRank, MPI_COMM_WORLD, &request);
         }
         else
         {
-            MPI_Irecv(ghostLayer, snx * sny, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
+            MPI_Irecv(ghostLayer, snx * sny * nc, MPI_FLOAT, neighbourRank, currRank, MPI_COMM_WORLD, &request);
         }
     }
 
@@ -169,12 +169,8 @@ int main(int argc, char *argv[])
     // READING AND DISTRIBUTION STRATEGY 1 - too naive :(
     /*
     // Reading the input file globally in the rank 0 process and then distributing it to all processes
-    float *arr[nc];
+    float *arr = malloc(nc * N * sizeof(float));
     if (rank == 0) {
-        for (long long t = 0; t < nc; t++){
-            arr[t] = malloc(N * sizeof(float));
-        }
-
         // READING STRATEGY - we are storing the input directly in distributable format
         FILE *file = fopen(inputFile, "rb");
         if (file == NULL) {
@@ -204,37 +200,20 @@ int main(int argc, char *argv[])
             // Calculate the offset and then the modified i
             offset = pi * snx * sny * snz;
             i_mod = si + offset;
-
-            for (long long t = 0; t < nc; t++){
-                fread(&arr[t][i_mod], sizeof(float), 1, file);
-            }
+            
+            // Read nc elements continuously
+            fread(&arr[i_mod * nc], sizeof(float), nc, file);
         }
         fclose(file);
     }
 
     // DISTRIBUTING STRATEGY - As we have already read the data in specific format we will directly distribute the data using MPI_Scatter
-    float *localArr[nc];
-    for (long long t = 0; t < nc; t++){
-        localArr[t] = malloc(localN * sizeof(float));
-    }
-    for (long long t = 0; t < nc; t++){
-        MPI_Scatter(arr[t], localN, MPI_FLOAT, localArr[t], localN, MPI_FLOAT, 0, MPI_COMM_WORLD);
-    }
-    // if (rank == 0){
-    //     for (long long t = 0; t < nc; t++){
-    //         free(arr[t]);
-    //     }
-    // }
+    float *localArr = malloc(nc * localN * sizeof(float));
+    MPI_Scatter(arr, localN * nc, MPI_FLOAT, localArr, localN * nc, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    // free(arr);
     */
 
     // READING AND DISTRIBUTION STRATEGY 2 - parallel I/O
-    /*
-    float *localArr[nc];
-    for (long long t = 0; t < nc; t++)
-    {
-        localArr[t] = malloc(localN * sizeof(float));
-    }
-
     // define starting position of each process
     long long startPos = (ip * snx * nc) + (jp * sny * nx * nc) + (kp * snz * nx * ny * nc);
 
@@ -245,33 +224,17 @@ int main(int argc, char *argv[])
     // start reading the file
     MPI_File fh;
     long long offset = 0;
-    float *readArr = malloc(readCount * numReads * sizeof(float));
+    float *localArr = malloc(readCount * numReads * sizeof(float));
     MPI_File_open(MPI_COMM_WORLD, inputFile, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
     for (long long k = 0; k < numReads; k++)
     {
         offset = (k % sny) * nx * nc + (k / sny) * nx * ny * nc;
-        MPI_File_read_at(fh, (startPos + offset) * sizeof(float), readArr + k * readCount, readCount, MPI_FLOAT, MPI_STATUS_IGNORE);
+        MPI_File_read_at(fh, (startPos + offset) * sizeof(float), localArr + k * readCount, readCount, MPI_FLOAT, MPI_STATUS_IGNORE);
     }
     MPI_File_close(&fh);
 
-    // convert the data in required format
-    for (long long i = 0; i < localN; i++)
-    {
-        for (long long t = 0; t < nc; t++)
-        {
-            localArr[t][i] = readArr[i * nc + t];
-        }
-    }
-    // free(readArr);
-    */
-
     // READING AND DISTRIBUTION STRATEGY 3 - parallel I/O w/ MPI_Type_vector
-    float *localArr[nc];
-    for (long long t = 0; t < nc; t++)
-    {
-        localArr[t] = malloc(localN * sizeof(float));
-    }
-
+    /*
     // define starting position of each process
     long long startPos = (ip * snx * nc) + (jp * sny * nx * nc) + (kp * snz * nx * ny * nc);
 
@@ -293,21 +256,12 @@ int main(int argc, char *argv[])
 
     // start reading the file
     MPI_File fh;
-    float *readArr = malloc(readCount * numReads * sizeof(float));
+    float *localArr = malloc(readCount * numReads * sizeof(float));
     MPI_File_open(MPI_COMM_WORLD, inputFile, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
     MPI_File_set_view(fh, startPos * sizeof(float), MPI_FLOAT, inputType, "native", MPI_INFO_NULL);
-    MPI_File_read_all(fh, readArr, readCount * numReads, MPI_FLOAT, MPI_STATUS_IGNORE);
+    MPI_File_read_all(fh, localArr, readCount * numReads, MPI_FLOAT, MPI_STATUS_IGNORE);
     MPI_File_close(&fh);
-
-    // convert the data in required format
-    for (long long i = 0; i < localN; i++)
-    {
-        for (long long t = 0; t < nc; t++)
-        {
-            localArr[t][i] = readArr[i * nc + t];
-        }
-    }
-    // free(readArr);
+    */
 
     // Reading and Data Distribution ends here
     MPI_Barrier(MPI_COMM_WORLD);
@@ -315,73 +269,64 @@ int main(int argc, char *argv[])
 
     // Main Code starts here
     // Before starting the computation it is wise to exchange the ghost layers beforehand
-    float *leftGhostLayer[nc], *rightGhostLayer[nc], *topGhostLayer[nc], *bottomGhostLayer[nc], *frontGhostLayer[nc], *backGhostLayer[nc];
+    float *leftGhostLayer, *rightGhostLayer, *topGhostLayer, *bottomGhostLayer, *frontGhostLayer, *backGhostLayer;
 
-    for (long long t = 0; t < nc; t++)
+    // Send Ghost Layers
+    if (ip != 0)
     {
-        // sending the ghost layers
-        if (ip != 0)
-        {
-            leftGhostLayer[t] = malloc(sny * snz * sizeof(float));
-            exchangeGhostLayers(leftGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 1, 1);
-        }
-        if (ip != px - 1)
-        {
-            rightGhostLayer[t] = malloc(sny * snz * sizeof(float));
-            exchangeGhostLayers(rightGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 2, 1);
-        }
-        if (jp != 0)
-        {
-            topGhostLayer[t] = malloc(snx * snz * sizeof(float));
-            exchangeGhostLayers(topGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 3, 1);
-        }
-        if (jp != py - 1)
-        {
-            bottomGhostLayer[t] = malloc(snx * snz * sizeof(float));
-            exchangeGhostLayers(bottomGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 4, 1);
-        }
-        if (kp != 0)
-        {
-            frontGhostLayer[t] = malloc(snx * sny * sizeof(float));
-            exchangeGhostLayers(frontGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 5, 1);
-        }
-        if (kp != pz - 1)
-        {
-            backGhostLayer[t] = malloc(snx * sny * sizeof(float));
-            exchangeGhostLayers(backGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 6, 1);
-        }
+        leftGhostLayer = malloc(nc * sny * snz * sizeof(float));
+        exchangeGhostLayers(leftGhostLayer, localArr, ip, jp, kp, px, py, pz, snx, sny, snz, nc, 1, 1);
+    }
+    if (ip != px - 1)
+    {
+        rightGhostLayer = malloc(nc * sny * snz * sizeof(float));
+        exchangeGhostLayers(rightGhostLayer, localArr, ip, jp, kp, px, py, pz, snx, sny, snz, nc, 2, 1);
+    }
+    if (jp != 0)
+    {
+        topGhostLayer = malloc(nc * snx * snz * sizeof(float));
+        exchangeGhostLayers(topGhostLayer, localArr, ip, jp, kp, px, py, pz, snx, sny, snz, nc, 3, 1);
+    }
+    if (jp != py - 1)
+    {
+        bottomGhostLayer = malloc(nc * snx * snz * sizeof(float));
+        exchangeGhostLayers(bottomGhostLayer, localArr, ip, jp, kp, px, py, pz, snx, sny, snz, nc, 4, 1);
+    }
+    if (kp != 0)
+    {
+        frontGhostLayer = malloc(nc * snx * sny * sizeof(float));
+        exchangeGhostLayers(frontGhostLayer, localArr, ip, jp, kp, px, py, pz, snx, sny, snz, nc, 5, 1);
+    }
+    if (kp != pz - 1)
+    {
+        backGhostLayer = malloc(nc * snx * sny * sizeof(float));
+        exchangeGhostLayers(backGhostLayer, localArr, ip, jp, kp, px, py, pz, snx, sny, snz, nc, 6, 1);
+    }
 
-        // receiving the ghost layers
-        if (ip != 0)
-        {
-            leftGhostLayer[t] = malloc(sny * snz * sizeof(float));
-            exchangeGhostLayers(leftGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 1, 0);
-        }
-        if (ip != px - 1)
-        {
-            rightGhostLayer[t] = malloc(sny * snz * sizeof(float));
-            exchangeGhostLayers(rightGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 2, 0);
-        }
-        if (jp != 0)
-        {
-            topGhostLayer[t] = malloc(snx * snz * sizeof(float));
-            exchangeGhostLayers(topGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 3, 0);
-        }
-        if (jp != py - 1)
-        {
-            bottomGhostLayer[t] = malloc(snx * snz * sizeof(float));
-            exchangeGhostLayers(bottomGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 4, 0);
-        }
-        if (kp != 0)
-        {
-            frontGhostLayer[t] = malloc(snx * sny * sizeof(float));
-            exchangeGhostLayers(frontGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 5, 0);
-        }
-        if (kp != pz - 1)
-        {
-            backGhostLayer[t] = malloc(snx * sny * sizeof(float));
-            exchangeGhostLayers(backGhostLayer[t], localArr[t], ip, jp, kp, px, py, pz, snx, sny, snz, 6, 0);
-        }
+    // Receive Ghost Layers
+    if (ip != 0)
+    {
+        exchangeGhostLayers(leftGhostLayer, localArr, ip, jp, kp, px, py, pz, snx, sny, snz, nc, 1, 0);
+    }
+    if (ip != px - 1)
+    {
+        exchangeGhostLayers(rightGhostLayer, localArr, ip, jp, kp, px, py, pz, snx, sny, snz, nc, 2, 0);
+    }
+    if (jp != 0)
+    {
+        exchangeGhostLayers(topGhostLayer, localArr, ip, jp, kp, px, py, pz, snx, sny, snz, nc, 3, 0);
+    }
+    if (jp != py - 1)
+    {
+        exchangeGhostLayers(bottomGhostLayer, localArr, ip, jp, kp, px, py, pz, snx, sny, snz, nc, 4, 0);
+    }
+    if (kp != 0)
+    {
+        exchangeGhostLayers(frontGhostLayer, localArr, ip, jp, kp, px, py, pz, snx, sny, snz, nc, 5, 0);
+    }
+    if (kp != pz - 1)
+    {
+        exchangeGhostLayers(backGhostLayer, localArr, ip, jp, kp, px, py, pz, snx, sny, snz, nc, 6, 0);
     }
 
     // Local and Global Minima Calculations
@@ -390,13 +335,13 @@ int main(int argc, char *argv[])
     {
         localMinima[t] = 0;
         localMaxima[t] = 0;
-        globalMinima[t] = localArr[t][0];
-        globalMaxima[t] = localArr[t][0];
+        globalMinima[t] = localArr[t];
+        globalMaxima[t] = localArr[t];
 
         for (long long i = 0; i < localN; i++)
         {
-            globalMaxima[t] = (localArr[t][i] > globalMaxima[t]) ? localArr[t][i] : globalMaxima[t];
-            globalMinima[t] = (localArr[t][i] < globalMinima[t]) ? localArr[t][i] : globalMinima[t];
+            globalMaxima[t] = (localArr[i * nc + t] > globalMaxima[t]) ? localArr[i * nc + t] : globalMaxima[t];
+            globalMinima[t] = (localArr[i * nc + t] < globalMinima[t]) ? localArr[i * nc + t] : globalMinima[t];
             isLocalMinima = 1;
             isLocalMaxima = 1;
 
@@ -406,68 +351,68 @@ int main(int argc, char *argv[])
 
             if (sxi != 0)
             {
-                isLocalMinima = (localArr[t][i] < localArr[t][i - 1]) ? isLocalMinima : 0;
-                isLocalMaxima = (localArr[t][i] > localArr[t][i - 1]) ? isLocalMaxima : 0;
+                isLocalMinima = (localArr[i * nc + t] < localArr[(i - 1) * nc + t]) ? isLocalMinima : 0;
+                isLocalMaxima = (localArr[i * nc + t] > localArr[(i - 1) * nc + t]) ? isLocalMaxima : 0;
             }
             else if (ip != 0)
             {
-                isLocalMinima = (localArr[t][i] < leftGhostLayer[t][sny * szi + syi]) ? isLocalMinima : 0;
-                isLocalMaxima = (localArr[t][i] > leftGhostLayer[t][sny * szi + syi]) ? isLocalMaxima : 0;
+                isLocalMinima = (localArr[i * nc + t] < leftGhostLayer[(sny * szi + syi) * nc + t]) ? isLocalMinima : 0;
+                isLocalMaxima = (localArr[i * nc + t] > leftGhostLayer[(sny * szi + syi) * nc + t]) ? isLocalMaxima : 0;
             }
 
             if (sxi != snx - 1)
             {
-                isLocalMinima = (localArr[t][i] < localArr[t][i + 1]) ? isLocalMinima : 0;
-                isLocalMaxima = (localArr[t][i] > localArr[t][i + 1]) ? isLocalMaxima : 0;
+                isLocalMinima = (localArr[i * nc + t] < localArr[(i + 1) * nc + t]) ? isLocalMinima : 0;
+                isLocalMaxima = (localArr[i * nc + t] > localArr[(i + 1) * nc + t]) ? isLocalMaxima : 0;
             }
             else if (ip != px - 1)
             {
-                isLocalMinima = (localArr[t][i] < rightGhostLayer[t][sny * szi + syi]) ? isLocalMinima : 0;
-                isLocalMaxima = (localArr[t][i] > rightGhostLayer[t][sny * szi + syi]) ? isLocalMaxima : 0;
+                isLocalMinima = (localArr[i * nc + t] < rightGhostLayer[(sny * szi + syi) * nc + t]) ? isLocalMinima : 0;
+                isLocalMaxima = (localArr[i * nc + t] > rightGhostLayer[(sny * szi + syi) * nc + t]) ? isLocalMaxima : 0;
             }
 
             if (syi != 0)
             {
-                isLocalMinima = (localArr[t][i] < localArr[t][i - snx]) ? isLocalMinima : 0;
-                isLocalMaxima = (localArr[t][i] > localArr[t][i - snx]) ? isLocalMaxima : 0;
+                isLocalMinima = (localArr[i * nc + t] < localArr[(i - snx) * nc + t]) ? isLocalMinima : 0;
+                isLocalMaxima = (localArr[i * nc + t] > localArr[(i - snx) * nc + t]) ? isLocalMaxima : 0;
             }
             else if (jp != 0)
             {
-                isLocalMinima = (localArr[t][i] < topGhostLayer[t][snx * szi + sxi]) ? isLocalMinima : 0;
-                isLocalMaxima = (localArr[t][i] > topGhostLayer[t][snx * szi + sxi]) ? isLocalMaxima : 0;
+                isLocalMinima = (localArr[i * nc + t] < topGhostLayer[(snx * szi + sxi) * nc + t]) ? isLocalMinima : 0;
+                isLocalMaxima = (localArr[i * nc + t] > topGhostLayer[(snx * szi + sxi) * nc + t]) ? isLocalMaxima : 0;
             }
 
             if (syi != sny - 1)
             {
-                isLocalMinima = (localArr[t][i] < localArr[t][i + snx]) ? isLocalMinima : 0;
-                isLocalMaxima = (localArr[t][i] > localArr[t][i + snx]) ? isLocalMaxima : 0;
+                isLocalMinima = (localArr[i * nc + t] < localArr[(i + snx) * nc + t]) ? isLocalMinima : 0;
+                isLocalMaxima = (localArr[i * nc + t] > localArr[(i + snx) * nc + t]) ? isLocalMaxima : 0;
             }
             else if (jp != py - 1)
             {
-                isLocalMinima = (localArr[t][i] < bottomGhostLayer[t][snx * szi + sxi]) ? isLocalMinima : 0;
-                isLocalMaxima = (localArr[t][i] > bottomGhostLayer[t][snx * szi + sxi]) ? isLocalMaxima : 0;
+                isLocalMinima = (localArr[i * nc + t] < bottomGhostLayer[(snx * szi + sxi) * nc + t]) ? isLocalMinima : 0;
+                isLocalMaxima = (localArr[i * nc + t] > bottomGhostLayer[(snx * szi + sxi) * nc + t]) ? isLocalMaxima : 0;
             }
 
             if (szi != 0)
             {
-                isLocalMinima = (localArr[t][i] < localArr[t][i - snx * sny]) ? isLocalMinima : 0;
-                isLocalMaxima = (localArr[t][i] > localArr[t][i - snx * sny]) ? isLocalMaxima : 0;
+                isLocalMinima = (localArr[i * nc + t] < localArr[(i - snx * sny) * nc + t]) ? isLocalMinima : 0;
+                isLocalMaxima = (localArr[i * nc + t] > localArr[(i - snx * sny) * nc + t]) ? isLocalMaxima : 0;
             }
             else if (kp != 0)
             {
-                isLocalMinima = (localArr[t][i] < frontGhostLayer[t][snx * syi + sxi]) ? isLocalMinima : 0;
-                isLocalMaxima = (localArr[t][i] > frontGhostLayer[t][snx * syi + sxi]) ? isLocalMaxima : 0;
+                isLocalMinima = (localArr[i * nc + t] < frontGhostLayer[(snx * syi + sxi) * nc + t]) ? isLocalMinima : 0;
+                isLocalMaxima = (localArr[i * nc + t] > frontGhostLayer[(snx * syi + sxi) * nc + t]) ? isLocalMaxima : 0;
             }
 
             if (szi != snz - 1)
             {
-                isLocalMinima = (localArr[t][i] < localArr[t][i + snx * sny]) ? isLocalMinima : 0;
-                isLocalMaxima = (localArr[t][i] > localArr[t][i + snx * sny]) ? isLocalMaxima : 0;
+                isLocalMinima = (localArr[i * nc + t] < localArr[(i + snx * sny) * nc + t]) ? isLocalMinima : 0;
+                isLocalMaxima = (localArr[i * nc + t] > localArr[(i + snx * sny) * nc + t]) ? isLocalMaxima : 0;
             }
             else if (kp != pz - 1)
             {
-                isLocalMinima = (localArr[t][i] < backGhostLayer[t][snx * syi + sxi]) ? isLocalMinima : 0;
-                isLocalMaxima = (localArr[t][i] > backGhostLayer[t][snx * syi + sxi]) ? isLocalMaxima : 0;
+                isLocalMinima = (localArr[i * nc + t] < backGhostLayer[(snx * syi + sxi) * nc + t]) ? isLocalMinima : 0;
+                isLocalMaxima = (localArr[i * nc + t] > backGhostLayer[(snx * syi + sxi) * nc + t]) ? isLocalMaxima : 0;
             }
 
             if (isLocalMinima)
