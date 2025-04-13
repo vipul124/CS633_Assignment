@@ -214,6 +214,7 @@ int main(int argc, char *argv[])
     */
 
     // READING AND DISTRIBUTION STRATEGY 2 - parallel I/O
+    /*
     // define starting position of each process
     long long startPos = (ip * snx * nc) + (jp * sny * nx * nc) + (kp * snz * nx * ny * nc);
 
@@ -232,36 +233,27 @@ int main(int argc, char *argv[])
         MPI_File_read_at(fh, (startPos + offset) * sizeof(float), localArr + k * readCount, readCount, MPI_FLOAT, MPI_STATUS_IGNORE);
     }
     MPI_File_close(&fh);
+    */
 
     // READING AND DISTRIBUTION STRATEGY 3 - parallel I/O w/ MPI_Type_vector
-    /*
-    // define starting position of each process
-    long long startPos = (ip * snx * nc) + (jp * sny * nx * nc) + (kp * snz * nx * ny * nc);
+    // define dimension split of each process
+    int ndims = 4;
+    int dims[4]    = {nz, ny, nx, nc };
+    int subdims[4] = {snz, sny, snx, nc};
+    int starts[4]  = {(kp * snz), (jp * sny), (ip * snx), 0};
 
-    // define number of reads for each process and count of each read
-    long long numReads = sny * snz;
-    long long readCount = nc * snx;
-
-    // define blocklengths and displacements for MPI_Type_vector
-    int *blocklengths = malloc(numReads * sizeof(int));
-    int *displacements = malloc(numReads * sizeof(int));
-    for (long long k = 0; k < numReads; k++)
-    {
-        blocklengths[k] = readCount;
-        displacements[k] = ((k % sny) * nx * nc + (k / sny) * nx * ny * nc);
-    }
+    // Create MPI_Type_vector
     MPI_Datatype inputType;
-    MPI_Type_indexed(numReads, blocklengths, displacements, MPI_FLOAT, &inputType);
+    MPI_Type_create_subarray(ndims, dims, subdims, starts, MPI_ORDER_C, MPI_FLOAT, &inputType);
     MPI_Type_commit(&inputType);
 
     // start reading the file
     MPI_File fh;
-    float *localArr = malloc(readCount * numReads * sizeof(float));
+    float *localArr = malloc(nc * localN * sizeof(float));
     MPI_File_open(MPI_COMM_WORLD, inputFile, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-    MPI_File_set_view(fh, startPos * sizeof(float), MPI_FLOAT, inputType, "native", MPI_INFO_NULL);
-    MPI_File_read_all(fh, localArr, readCount * numReads, MPI_FLOAT, MPI_STATUS_IGNORE);
+    MPI_File_set_view(fh, 0, MPI_FLOAT, inputType, "native", MPI_INFO_NULL);
+    MPI_File_read_all(fh, localArr, localN * nc, MPI_FLOAT, MPI_STATUS_IGNORE);
     MPI_File_close(&fh);
-    */
 
     // Reading and Data Distribution ends here
     MPI_Barrier(MPI_COMM_WORLD);
